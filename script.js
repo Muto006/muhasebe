@@ -571,7 +571,6 @@ class MuhasebeSistemi {
                     this.saveToLocalStorage();
                     this.updateSummary();
                     this.renderTransactions();
-                    this.populateYearSelect(); // Yıl seçeneklerini güncelle
                     this.showNotification('Veriler başarıyla içe aktarıldı!', 'success');
                 } else {
                     throw new Error('Geçersiz veri formatı');
