@@ -171,11 +171,23 @@ class MuhasebeSistemi {
     }
 
     async addTransaction(transaction) {
+        // ID'yi önce oluştur
+        transaction.id = Date.now();
+        
         if (window.firebaseService && window.firebaseService.isAuthenticated()) {
-            await window.firebaseService.addTransaction(transaction);
+            try {
+                await window.firebaseService.addTransaction(transaction);
+                // Firebase başarılı ise LocalStorage'a da ekle
+                this.transactions.unshift(transaction);
+                this.saveToLocalStorage();
+            } catch (error) {
+                console.error('Firebase kayıt hatası:', error);
+                // Firebase hatası durumunda sadece LocalStorage'a kaydet
+                this.transactions.unshift(transaction);
+                this.saveToLocalStorage();
+            }
         } else {
             // Fallback: LocalStorage'a kaydet
-            transaction.id = Date.now();
             this.transactions.unshift(transaction);
             this.saveToLocalStorage();
         }
@@ -187,7 +199,17 @@ class MuhasebeSistemi {
         if (confirm('Bu kaydı silmek istediğinizden emin misiniz?')) {
             try {
                 if (window.firebaseService && window.firebaseService.isAuthenticated()) {
-                    await window.firebaseService.deleteTransaction(id);
+                    try {
+                        await window.firebaseService.deleteTransaction(id);
+                        // Firebase başarılı ise LocalStorage'dan da sil
+                        this.transactions = this.transactions.filter(t => t.id !== id);
+                        this.saveToLocalStorage();
+                    } catch (error) {
+                        console.error('Firebase silme hatası:', error);
+                        // Firebase hatası durumunda sadece LocalStorage'dan sil
+                        this.transactions = this.transactions.filter(t => t.id !== id);
+                        this.saveToLocalStorage();
+                    }
                 } else {
                     // Fallback: LocalStorage'dan sil
                     this.transactions = this.transactions.filter(t => t.id !== id);
@@ -257,7 +279,23 @@ class MuhasebeSistemi {
 
         try {
             if (window.firebaseService && window.firebaseService.isAuthenticated()) {
-                await window.firebaseService.updateTransaction(this.editingId, updatedTransaction);
+                try {
+                    await window.firebaseService.updateTransaction(this.editingId, updatedTransaction);
+                    // Firebase başarılı ise LocalStorage'da da güncelle
+                    const index = this.transactions.findIndex(t => t.id === this.editingId);
+                    if (index !== -1) {
+                        this.transactions[index] = { ...this.transactions[index], ...updatedTransaction };
+                        this.saveToLocalStorage();
+                    }
+                } catch (error) {
+                    console.error('Firebase güncelleme hatası:', error);
+                    // Firebase hatası durumunda sadece LocalStorage'da güncelle
+                    const index = this.transactions.findIndex(t => t.id === this.editingId);
+                    if (index !== -1) {
+                        this.transactions[index] = { ...this.transactions[index], ...updatedTransaction };
+                        this.saveToLocalStorage();
+                    }
+                }
             } else {
                 // Fallback: LocalStorage'da güncelle
                 const index = this.transactions.findIndex(t => t.id === this.editingId);
