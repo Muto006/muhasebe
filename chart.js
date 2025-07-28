@@ -2,13 +2,40 @@
 
 class GrafikSayfasi {
     constructor() {
-        this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        this.transactions = [];
         this.monthlyChart = null;
         
         this.initializeElements();
         this.bindEvents();
-        this.updateSummary();
-        this.initializeChart();
+        this.initFirebase();
+    }
+    
+    // Firebase başlatma
+    async initFirebase() {
+        const checkFirebase = () => {
+            if (window.firebaseService) {
+                this.loadFirebaseData();
+            } else {
+                setTimeout(checkFirebase, 100);
+            }
+        };
+        checkFirebase();
+    }
+    
+    // Firebase'den veri yükle
+    async loadFirebaseData() {
+        try {
+            const firebaseTransactions = await window.firebaseService.loadUserData();
+            this.transactions = firebaseTransactions;
+            this.updateSummary();
+            this.initializeChart();
+        } catch (error) {
+            console.error('Veri yükleme hatası:', error);
+            // Hata durumunda LocalStorage'dan yükle
+            this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            this.updateSummary();
+            this.initializeChart();
+        }
     }
 
     initializeElements() {
