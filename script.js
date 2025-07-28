@@ -107,8 +107,8 @@ class MuhasebeSistemi {
     
     // Sayfa görünür olduğunda veri yükle
     onPageShow() {
-        // Sadece Firebase varsa ve veri yoksa yükle
-        if (window.firebaseService && this.transactions.length === 0) {
+        // Firebase varsa her zaman güncel veriyi yükle
+        if (window.firebaseService) {
             this.loadFirebaseData();
         }
     }
@@ -117,17 +117,16 @@ class MuhasebeSistemi {
     async loadFirebaseData() {
         try {
             const firebaseTransactions = await window.firebaseService.loadUserData();
-            // Sadece veri yoksa veya Firebase'den gelen veri daha güncel ise güncelle
-            if (this.transactions.length === 0 || firebaseTransactions.length > this.transactions.length) {
-                this.transactions = firebaseTransactions;
-                this.updateSummary();
-                this.renderTransactions();
-                console.log('Firebase\'den veri yüklendi:', firebaseTransactions.length, 'kayıt');
-            }
+            // Her zaman Firebase'den gelen veriyi kullan
+            this.transactions = firebaseTransactions;
+            this.updateSummary();
+            this.renderTransactions();
+            console.log('Firebase\'den veri yüklendi:', firebaseTransactions.length, 'kayıt');
         } catch (error) {
             console.error('Veri yükleme hatası:', error);
-            // Hata durumunda mevcut verileri koru
+            // Hata durumunda LocalStorage'dan yükle
             if (this.transactions.length === 0) {
+                this.transactions = JSON.parse(localStorage.getItem('transactions')) || [];
                 this.updateSummary();
                 this.renderTransactions();
             }
