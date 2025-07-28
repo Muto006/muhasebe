@@ -13,7 +13,8 @@ import {
 import { 
     signInWithPopup, 
     signOut, 
-    onAuthStateChanged 
+    onAuthStateChanged,
+    signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 class FirebaseService {
@@ -28,7 +29,6 @@ class FirebaseService {
     async initAuth() {
         // Anonim giriş yap (kullanıcı fark etmez)
         try {
-            const { signInAnonymously } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js");
             await signInAnonymously(this.auth);
         } catch (error) {
             console.error('Anonim giriş hatası:', error);
